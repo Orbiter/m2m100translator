@@ -3,6 +3,7 @@ import time
 import torch
 from torch.quantization import quantize_dynamic
 from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
 from transformers import M2M100ForConditionalGeneration, M2M100Tokenizer
 
 torch.set_num_threads(6)
@@ -12,6 +13,9 @@ languages = [ ['Afrikaans', 'af'], ['Albanian', 'sq'], ['Amharic', 'am'], ['Arab
 
 m2m_model = "m2m100_1.2B"
 #m2m_model = "m2m100_418M"
+
+app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 class LanguageModel:
     def __init__(self):
@@ -24,8 +28,6 @@ class LanguageModel:
         encoded_input = self.tokenizer(text, return_tensors="pt")
         generated_tokens = self.model.generate(**encoded_input, forced_bos_token_id=self.tokenizer.get_lang_id(out))
         return self.tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)[0]
-
-app = Flask(__name__)
 
 print("*** Loading Model...", flush=True, end="")
 app.language_model = LanguageModel()
